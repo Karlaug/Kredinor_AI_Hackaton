@@ -3,7 +3,7 @@
 Internal REST API for task and project management.
 
 ## Stack
-- .NET 8
+- .NET 10
 - Entity Framework Core
 - SQLite (dev), SQL Server (prod)
 

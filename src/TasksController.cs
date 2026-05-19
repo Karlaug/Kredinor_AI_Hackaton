@@ -51,8 +51,15 @@ public class TasksController : ControllerBase
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        _taskService.DeleteTask(id);
-        return Ok();
+        var deleted = _taskService.DeleteTask(id);
+        if (!deleted)
+        {
+            _logger.LogWarning("Delete failed: task {TaskId} not found", id);
+            return NotFound();
+        }
+
+        _logger.LogInformation("Task {TaskId} deleted successfully", id);
+        return NoContent();
     }
 
     [HttpGet("search")]

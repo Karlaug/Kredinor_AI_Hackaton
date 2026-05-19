@@ -45,14 +45,14 @@ public class TaskService
         return existing;
     }
 
-    public void DeleteTask(int id)
+    public bool DeleteTask(int id)
     {
         var task = _db.Tasks.FirstOrDefault(t => t.Id == id);
-        if (task != null)
-        {
-            _db.Tasks.Remove(task);
-            _db.SaveChanges();
-        }
+        if (task == null) return false;
+
+        _db.Tasks.Remove(task);
+        _db.SaveChanges();
+        return true;
     }
 
     public List<TaskItem> SearchTasks(string query)

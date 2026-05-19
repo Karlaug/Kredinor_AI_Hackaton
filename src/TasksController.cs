@@ -18,71 +18,72 @@ public class TasksController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        var tasks = _taskService.GetAllTasks();
+        var tasks = await _taskService.GetAllTasksAsync();
         return Ok(tasks);
     }
 
     [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
-        var task = _taskService.GetTaskById(id);
+        var task = await _taskService.GetTaskByIdAsync(id);
         if (task == null) return NotFound();
         return Ok(task);
     }
 
     [HttpPost]
-    public IActionResult Create([FromBody] TaskItem task)
+    public async Task<IActionResult> Create([FromBody] TaskItem task)
     {
         // TODO: validation
-        var created = _taskService.CreateTask(task);
+        var created = await _taskService.CreateTaskAsync(task);
         return Ok(created);
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] TaskItem task)
+    public async Task<IActionResult> Update(int id, [FromBody] TaskItem task)
     {
-        var updated = _taskService.UpdateTask(id, task);
+        var updated = await _taskService.UpdateTaskAsync(id, task);
         if (updated == null) return NotFound();
         return Ok(updated);
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        _taskService.DeleteTask(id);
-        return Ok();
+        var deleted = await _taskService.DeleteTaskAsync(id);
+        if (!deleted) return NotFound();
+        return NoContent();
     }
 
     [HttpGet("search")]
-    public IActionResult Search(string query)
+    public async Task<IActionResult> Search(string query)
     {
         // FIXME: this is slow on large datasets
-        var results = _taskService.SearchTasks(query);
+        var results = await _taskService.SearchTasksAsync(query);
         return Ok(results);
     }
 
     [HttpPost("{id}/assign")]
-    public IActionResult Assign(int id, [FromBody] AssignRequest request)
+    public async Task<IActionResult> Assign(int id, [FromBody] AssignRequest request)
     {
-        var result = _taskService.AssignTask(id, request.UserId);
+        var result = await _taskService.AssignTaskAsync(id, request.UserId);
         return Ok(result);
     }
 
     [HttpGet("user/{userId}")]
-    public IActionResult GetByUser(int userId)
+    public async Task<IActionResult> GetByUser(int userId)
     {
-        var tasks = _taskService.GetTasksByUser(userId);
+        var tasks = await _taskService.GetTasksByUserAsync(userId);
         return Ok(tasks);
     }
 
     [HttpPost("bulk-import")]
-    public IActionResult BulkImport([FromBody] List<TaskItem> tasks)
+    public async Task<IActionResult> BulkImport([FromBody] List<TaskItem> tasks)
     {
         foreach (var t in tasks)
         {
-            _taskService.CreateTask(t);
+            await _taskService.CreateTaskAsync(t);
         }
         return Ok(new { count = tasks.Count });
     }

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TaskApi.Models;
 using TaskApi.Data;
 
@@ -12,28 +13,28 @@ public class TaskService
         _db = db;
     }
 
-    public List<TaskItem> GetAllTasks()
+    public async Task<List<TaskItem>> GetAllTasksAsync()
     {
-        return _db.Tasks.ToList();
+        return await _db.Tasks.ToListAsync();
     }
 
-    public TaskItem? GetTaskById(int id)
+    public async Task<TaskItem?> GetTaskByIdAsync(int id)
     {
-        return _db.Tasks.FirstOrDefault(t => t.Id == id);
+        return await _db.Tasks.FirstOrDefaultAsync(t => t.Id == id);
     }
 
-    public TaskItem CreateTask(TaskItem task)
+    public async Task<TaskItem> CreateTaskAsync(TaskItem task)
     {
         task.CreatedAt = DateTime.Now;
         task.Status = "Open";
         _db.Tasks.Add(task);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
         return task;
     }
 
-    public TaskItem? UpdateTask(int id, TaskItem updated)
+    public async Task<TaskItem?> UpdateTaskAsync(int id, TaskItem updated)
     {
-        var existing = _db.Tasks.FirstOrDefault(t => t.Id == id);
+        var existing = await _db.Tasks.FirstOrDefaultAsync(t => t.Id == id);
         if (existing == null) return null;
 
         existing.Title = updated.Title;
@@ -41,58 +42,58 @@ public class TaskService
         existing.Priority = updated.Priority;
         existing.DueDate = updated.DueDate;
         // NOTE: we deliberately do not update Status here, use the status endpoint
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
         return existing;
     }
 
-    public void DeleteTask(int id)
+    public async Task<bool> DeleteTaskAsync(int id)
     {
-        var task = _db.Tasks.FirstOrDefault(t => t.Id == id);
-        if (task != null)
-        {
-            _db.Tasks.Remove(task);
-            _db.SaveChanges();
-        }
+        var task = await _db.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+        if (task == null) return false;
+
+        _db.Tasks.Remove(task);
+        await _db.SaveChangesAsync();
+        return true;
     }
 
-    public List<TaskItem> SearchTasks(string query)
+    public async Task<List<TaskItem>> SearchTasksAsync(string query)
     {
         // Loads everything into memory first - known issue
-        var all = _db.Tasks.ToList();
+        var all = await _db.Tasks.ToListAsync();
         return all.Where(t =>
             (t.Title != null && t.Title.ToLower().Contains(query.ToLower())) ||
             (t.Description != null && t.Description.ToLower().Contains(query.ToLower()))
         ).ToList();
     }
 
-    public TaskItem? AssignTask(int taskId, int userId)
+    public async Task<TaskItem?> AssignTaskAsync(int taskId, int userId)
     {
-        var task = _db.Tasks.FirstOrDefault(t => t.Id == taskId);
+        var task = await _db.Tasks.FirstOrDefaultAsync(t => t.Id == taskId);
         if (task == null) return null;
 
         task.AssignedUserId = userId;
         task.AssignedAt = DateTime.Now;
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         // TODO: send notification email
         return task;
     }
 
-    public List<TaskItem> GetTasksByUser(int userId)
+    public async Task<List<TaskItem>> GetTasksByUserAsync(int userId)
     {
-        return _db.Tasks.Where(t => t.AssignedUserId == userId).ToList();
+        return await _db.Tasks.Where(t => t.AssignedUserId == userId).ToListAsync();
     }
 
     // Duplicate-ish helper, used in two places
-    public int CountOpenTasks(int userId)
+    public async Task<int> CountOpenTasksAsync(int userId)
     {
-        var tasks = _db.Tasks.Where(t => t.AssignedUserId == userId).ToList();
+        var tasks = await _db.Tasks.Where(t => t.AssignedUserId == userId).ToListAsync();
         return tasks.Count(t => t.Status == "Open");
     }
 
-    public int CountActiveTasks(int userId)
+    public async Task<int> CountActiveTasksAsync(int userId)
     {
-        var all = _db.Tasks.ToList();
+        var all = await _db.Tasks.ToListAsync();
         var mine = all.Where(t => t.AssignedUserId == userId);
         return mine.Where(t => t.Status != "Closed" && t.Status != "Done").Count();
     }

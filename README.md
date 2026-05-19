@@ -29,6 +29,16 @@ Hvis dere ikke har et tomt prosjekt å importere til, lag en ny iterasjon eller 
 
 **Alternativ:** Hvis Azure DevOps-import krangler, bruk CSV-filen direkte i den AI-assistenten dere jobber med – CoPilot leser CSV utmerket og kan groome den der.
 
+## Slik setter du opp databasen
+
+```
+dotnet tool install --global dotnet-ef
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+dotnet restore
+dotnet run
+```
+
 ## Slik kjører dere koden
 
 ```
